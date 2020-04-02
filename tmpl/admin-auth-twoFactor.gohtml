@@ -1,0 +1,32 @@
+{{template "admin-auth-base" .}}
+
+{{define "content"}}
+  <div class="card">
+    <header class="card-header">
+      <p class="card-header-title">Suburbia email verification</p>
+    </header>
+
+    <div class="card-content">
+
+      <form method="post">
+          {{.Session.CSRFField}}
+
+        <div class="field">
+          <label class="label">Email Token</label>
+          <div class="control">
+            <input class="input" type="text" name="emailToken" placeholder="Email Token" autocomplete="off"
+                   autofocus required>
+          </div>
+        </div>
+
+        <div class="buttons">
+          <button class="button is-link is-fullwidth" type="submit">Proceed</button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+{{end}}

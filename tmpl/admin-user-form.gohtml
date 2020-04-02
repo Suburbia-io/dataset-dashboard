@@ -1,0 +1,245 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <style>
+    hr {
+      margin-top: 0.5rem;
+    }
+    #api-key-form {
+      margin-bottom: 1.25rem;
+    }
+  </style>
+{{end}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL "user-list"}}">Users</a></li>
+            {{ if .User.UserID }}
+              <li class="is-active"><a href="" aria-current="page">{{.User.Name}}</a></li>
+            {{ else }}
+              <li class="is-active"><a href="" aria-current="page">Add User</a></li>
+            {{end}}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+    </div>
+  </nav>
+
+  <div class="columns is-desktop">
+    <div class="column">
+    {{with .User}}
+      <form method="post" action="{{ReverseURL "user-form-submit"}}">
+        {{$.Session.CSRFField}}
+
+        <input type="hidden" name="UserID" value="{{.UserID}}">
+
+        <div class="field">
+          <label class="label">Name</label>
+          <div class="control">
+            <input class="input" type="text" name="User.Name" value="{{.Name}}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Email</label>
+          <div class="control">
+            <input class="input" type="email" name="User.Email" value="{{.Email}}">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label">Customer</label>
+          <div class="control">
+            {{if .CustomerID}}
+              <input class="input" type="text" value="{{.Customer.Name}}" readonly>
+              <input class="input" type="hidden" name="User.CustomerID" value="{{.CustomerID}}">
+            {{else}}
+              <div class="select">
+                <select name="User.CustomerID">
+                  {{range  $.Customers}}
+                    <option value="{{.CustomerID}}">{{.Name}}</option>
+                  {{end}}
+                </select>
+              </div>
+            {{end}}
+          </div>
+        </div>
+
+        {{if .UserID}}
+          <div class="field">
+            <label class="label">SFTP Username</label>
+            <div class="control">
+              <input class="input" type="text" value="{{.SFTPUsername}}" readonly>
+            </div>
+          </div>
+        {{end}}
+
+        <div class="field">
+          <label class="label">SFTP public key</label>
+          <div class="control">
+            <textarea class="textarea" name="User.SFTPPubKey">{{.SFTPPubKey}}</textarea>
+          </div>
+        </div>
+
+        {{if .UserID}}
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" name="Archived" {{if .ArchivedAt}}checked{{end}}>
+              Archived
+            </label>
+          </div>
+
+          {{/* Read-only fields */}}
+          <div class="field">
+            <label class="label">Created</label>
+            <div class="control">
+              {{template "format-time" .CreatedAt}}
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Archived</label>
+            <div class="control">
+              {{template "format-time" .ArchivedAt}}
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label">Last Active</label>
+            <div class="control">
+              {{template "format-time" .LastActiveAt}}
+            </div>
+          </div>
+        {{end}}
+
+        <div class="field">
+          <div class="control">
+            <button class="button is-link">Save</button>
+          </div>
+        </div>
+      </form>
+    {{end}}
+    </div>
+
+    <div class="column">
+      <hr class="is-hidden-desktop">
+      {{if and .User.UserID .Session.User.IsRoleSuperAdmin (eq .User.Customer.CustomerID .SuburbiaInternalCustomerUUID)}}
+        <form id="api-key-form" method="post" action="{{ReverseURL "user-password-form-submit"}}">
+          {{.Session.CSRFField}}
+          <input class="input" type="hidden" name="CustomerID" value="{{.User.CustomerID}}">
+          <input class="input" type="hidden" name="UserID" value="{{.User.UserID}}">
+
+          <div class="field">
+            <label class="label">Password</label>
+            <div class="control is-expanded">
+              <input class="input" type="text" name="Password" value="">
+            </div>
+          </div>
+          <div class="field">
+            {{if .User.Hash}}
+              <div class="control">
+                <button class="button is-danger" name="Action" value="revoke">
+                  Set New Password
+                </button>
+              </div>
+            {{else}}
+              <div class="control">
+                <button class="button is-link" name="Action" value="generate">
+                  Set Password
+                </button>
+              </div>
+            {{end}}
+          </div>
+        </form>
+      {{end}}
+
+      {{if and .User.UserID .Session.User.IsRoleSuperAdmin}}
+        <form id="api-key-form" method="post" action="{{ReverseURL "user-api-key-form-submit"}}">
+          {{.Session.CSRFField}}
+          <input class="input" type="hidden" name="CustomerID" value="{{.User.CustomerID}}">
+          <input class="input" type="hidden" name="UserID" value="{{.User.UserID}}">
+
+          <div class="field">
+            <label class="label">API Key</label>
+            <div class="control is-expanded">
+              <input class="input" type="text" value="{{if .User.APIKey}}{{.User.APIKey}}{{end}}" readonly>
+            </div>
+          </div>
+          <div class="field">
+            {{if .User.APIKey}}
+              <div class="control">
+                <button class="button is-danger" name="Action" value="revoke">
+                  Revoke API Access
+                </button>
+              </div>
+            {{else}}
+              <div class="control">
+                <button class="button is-link" name="Action" value="generate">
+                  Generate API Key
+                </button>
+              </div>
+            {{end}}
+          </div>
+        </form>
+      {{end}}
+
+      {{if .User.UserID }}
+        <form method="post" action="{{ReverseURL "user-roles-form-submit"}}">
+          {{.Session.CSRFField}}
+          <input class="input" type="hidden" name="CustomerID" value="{{.User.CustomerID}}">
+          <input class="input" type="hidden" name="UserID" value="{{.User.UserID}}">
+
+          <div class="field">
+            <label class="label">Roles</label>
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="IsRoleCustomerUser" {{if .User.IsRoleCustomerUser}}checked{{end}}
+                       {{if not .Session.User.IsRoleSuperAdmin}}disabled{{end}}>
+                Customer User
+              </label>
+            </div>
+
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="IsRoleAdmin" {{if .User.IsRoleAdmin}}checked{{end}}
+                       {{if not .Session.User.IsRoleSuperAdmin}}disabled{{end}}>
+                Admin
+              </label>
+            </div>
+
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="IsRoleSuperAdmin" {{if .User.IsRoleSuperAdmin}}checked{{end}}
+                       {{if not .Session.User.IsRoleSuperAdmin}}disabled{{end}}>
+                Super Admin
+              </label>
+            </div>
+
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="IsRoleLabeler" {{if .User.IsRoleLabeler}}checked{{end}}
+                       {{if not .Session.User.IsRoleSuperAdmin}}disabled{{end}}>
+                Labeler
+              </label>
+            </div>
+          </div>
+
+          {{if .Session.User.IsRoleSuperAdmin}}
+            <div class="field">
+              <div class="control">
+                <button class="button is-warning" name="Action" value="generate">
+                  Change Roles
+                </button>
+              </div>
+            </div>
+          {{end}}
+        </form>
+      {{end}}
+    </div>
+  </div>
+{{end}}

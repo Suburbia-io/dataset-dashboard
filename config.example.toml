@@ -1,0 +1,42 @@
+Env = "dev"
+
+StaticDir = "/home/user/dashboard/static"
+DataDir = "/home/user/dashboard/storage"
+
+AlertURL = "https://alerts.suburbia.io/report/XXXXXXXX"
+Hostnames = ["suburbia.test"]
+HTTPPort = "8080"
+
+# Used for email links and showing users the sftp url.
+ServerHostname = "http://suburbia.test:8080"
+
+SuperAdminEmail = "admin@suburbia.io"
+SuperAdminPassword = "2a4b6beab187821f7624cc9906f7bb5d"
+AdminAuthTokenLifetimeSec = 3600000
+SessionLifetimeSec  = 3600000
+SessionCookieDomain = ".suburbia.test"
+SessionCookieSecure = false
+GoogleMapsApiKey = "xyz"
+GeonamesApiUsername = "suburbia"
+GeonamesApiToken = "xxx-token-is-in-1password-xxx"
+CSRFSecret = "32-byte-long-auth-key-xxxx-xxxxx"
+
+[DB]
+DBHost     = "127.0.0.1"
+DBName     = "dashboard"
+DBUser     = "test"
+DBPassword = "123"
+DBPort     = "5432"
+DBSSLMode  = "disable"
+
+[Views]
+TmplDir = "/home/user/dashboard/tmpl"
+Cache   = false
+
+[Mailer]
+Driver        = "log"
+SenderName    = "Suburbia"
+SenderEmail   = "no-reply@suburbia.io"
+RedirectEmail = ""
+MailgunDomain = "mail.suburbia.io"
+MailgunAPIKey = ""

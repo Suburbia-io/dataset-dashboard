@@ -1,0 +1,26 @@
+{{define "admin-list-search"}}
+  <div class="field is-grouped">
+    <p class="control">
+      <input class="input" type="text" size="40" name="search" value="{{.ListArgs.Search}}" autofocus="">
+    </p>
+    <p class="control">
+      <button type="submit" class="button is-link">
+        Search
+      </button>
+    </p>
+    {{if .ListArgs.Search}}
+      <p class="control search-clear">
+        <a href="./">Show all</a>
+      </p>
+    {{end}}
+  </div>
+
+  {{/* Add other query params as hidden inputs */}}
+  {{with GetQueryParams .ListArgs "search" "" | print}}
+    {{$arr := Split . "&"}}
+    {{range $_, $param := $arr}}
+      {{$keyval := Split $param "="}}
+      <input class="input" type="hidden" name="{{ index $keyval 0}}" value="{{index $keyval 1}}">
+    {{end}}
+  {{end}}
+{{end}}

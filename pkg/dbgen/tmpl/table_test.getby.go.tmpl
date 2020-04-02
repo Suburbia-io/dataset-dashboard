@@ -1,0 +1,30 @@
+{{define "table_test.getby"}}
+{{range .GetBys}}
+func Test{{$.RowType}}_GetBy{{.Name}}(t *testing.T) {
+	t.Parallel()
+	db, done := NewDBForTesting()
+	defer done()
+
+	// Insert a row.
+	row := New{{$.RowType}}ForTesting(db)
+	if err := {{$.RowType}}s.Insert(db, &row); err != nil {
+		t.Fatal(err)
+	}
+
+
+	// Row should exist.
+	row2, err := {{$.RowType}}s.GetBy{{.Name}}(
+		db,
+		{{range .Cols -}}row.{{.GoName}},{{end}}
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !row.Equals(row2) {
+		t.Fatalf("%v != %v", row, row2)
+	}
+}
+
+{{end}}
+{{end}}

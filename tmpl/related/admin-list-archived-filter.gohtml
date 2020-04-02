@@ -1,0 +1,15 @@
+{{define "admin-list-archived-filter"}}
+  <p class="panel-block filter-label">
+    Archived
+  </p>
+  <p class="panel-tabs">
+    {{/* The Go templates templates provides only an awkward way to deal with *bool but this works. */}}
+    {{/* https://stackoverflow.com/questions/32774234/show-default-content-in-a-template-if-an-object-is-nil-otherwise-show-based-on-t/50032009#50032009 */}}
+    <a href="?{{GetQueryParams .ListArgs "archived" ""}}"
+       {{if html .ListArgs.Archived | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+    <a href="?{{GetQueryParams .ListArgs "archived" "true"}}"
+       {{if and .ListArgs.Archived (DerefBool .ListArgs.Archived)}}class="is-active"{{end}}>Yes</a>
+    <a href="?{{GetQueryParams .ListArgs "archived" "false"}}"
+       {{if and .ListArgs.Archived (not (DerefBool .ListArgs.Archived))}}class="is-active"{{end}}>No</a>
+  </p>
+{{end}}

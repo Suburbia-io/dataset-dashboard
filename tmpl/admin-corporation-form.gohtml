@@ -1,0 +1,94 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL `dataset-list`}}">Datasets</a></li>
+          <li><a href="{{ReverseURL `dataset-edit` `DatasetID` .Corporation.DatasetID}}">{{.Dataset.Name}}</a></li>
+          <li class="is-active">
+            <a href="" aria-current="page">
+                {{if .Corporation.Name}}{{.Corporation.Name}}{{else}}Add Corporation{{end}}
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+    </div>
+  </nav>
+
+  <div class="columns is-desktop">
+    <div class="column is-half">
+        {{with .Corporation}}
+          <form method="post" action="../submit/">
+              {{$.Session.CSRFField}}
+
+            <input type="hidden" name="DatasetID" value="{{.DatasetID}}">
+            <input type="hidden" name="CorporationID" value="{{.CorporationID}}">
+
+            <div class="field">
+              <label class="label">Corporation Name</label>
+              <div class="control">
+                <input class="input" type="text" name="Name" value="{{.Name}}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Slug</label>
+              <div class="control">
+                <input class="input" type="text" name="Slug" value="{{.Slug}}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Exchange</label>
+              <div class="control">
+                <input class="input" type="text" name="Exchange" value="{{.Exchange}}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Code</label>
+              <div class="control">
+                <input class="input" type="text" name="Code" value="{{.Code}}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">ISIN</label>
+              <div class="control">
+                <input class="input" type="text" name="Isin" value="{{.Isin}}">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">CUSIP</label>
+              <div class="control">
+                <input class="input" type="text" name="Cusip" value="{{.Cusip}}">
+              </div>
+            </div>
+
+
+            <div class="field">
+              <div class="control">
+                <button type="submit" class="button is-link">Save</button>
+              </div>
+            </div>
+          </form>
+        {{end}}
+    </div>
+  </div>
+
+  {{if .Corporation.CorporationID}}
+    <form method="post" action="delete/">
+        {{$.Session.CSRFField}}
+      <input type="hidden" name="DatasetID" value="{{.Corporation.DatasetID}}">
+      <input type="hidden" name="CorporationID" value="{{.Corporation.CorporationID}}">
+      <button type="submit" class="button is-link is-danger">Delete</button>
+    </form>
+  {{end}}
+
+{{end}}

@@ -1,0 +1,104 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <style>
+    /* TODO Move CSS to scoped style in the table vue components. */
+    .table .field {
+      margin-bottom: 0;
+    }
+    .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover,
+    .table.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(2n) {
+      background-color: rgba(125, 195, 232, 0.2); /* #7dc3e8 */
+    }
+    .table tbody tr:not(.is-selected):hover > .geoname,
+    .table tbody tr:not(.is-selected):hover:nth-child(2n) > .geoname {
+      border: 2px solid #208fcf;
+    }
+    .table .input {
+      height: 30px;
+    }
+    .postal-codes >.postal-code,
+    .geoname {
+      white-space: nowrap;
+    }
+    .location-string,
+    .parsed-country,
+    .parsed-postal-code,
+    .postal-codes,
+    .geoname,
+    .geoname-id,
+    .parent-geoname-id {
+      padding-right: 0 !important;
+    }
+    .google-search,
+    .location-string {
+      padding-left: 0 !important;
+    }
+  </style>
+
+  <script defer src="/static/locations/{{ Manifest "locations.js" }}"></script>
+  <link rel="stylesheet" href="/static/locations/{{ Manifest "locations.css" }}">
+{{end}}
+
+{{define "content"}}
+  <div id="locations" data-locations="{{.LocationsJSON}}"></div>
+
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          {{if .Session.User.IsRoleAdmin}}
+            <li><a href="{{ReverseURL `dataset-list`}}">Datasets</a></li>
+            <li><a href="{{ReverseURL `dataset-edit` `DatasetID` .Dataset.DatasetID}}">{{.Dataset.Name}}</a></li>
+          {{else}}
+            <li><a href="{{ReverseURL `labeler-dataset-list`}}">Datasets</a></li>
+            <li class="is-active"><a href="" aria-current="page">{{.Dataset.Name}}</a></li>
+          {{end}}
+          <li class="is-active"><a href="" aria-current="page">Locations</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+      <form class="level-item" method="post" action="{{ReverseURL "location-search-geonames" `DatasetID` .Dataset.DatasetID}}">
+        {{.Session.CSRFField}}
+        <button class="button is-link">Search GeoNames</button>
+      </form>
+    </div>
+  </nav>
+
+  <div class="columns">
+    <div class="column is-10-desktop is-11-fullhd">
+      <form id="search-form" method="get">
+        {{template "admin-list-search" .}}
+      </form>
+
+      <div class="table-container">
+        <div id="locations-table-app"></div>
+      </div>
+    </div>
+
+    <div class="column">
+      <nav class="panel filters">
+        <p class="panel-heading">
+          Filters
+        </p>
+
+        <p class="panel-block filter-label">
+          Approved
+        </p>
+        <p class="panel-tabs">
+          <a href="?{{GetQueryParams .ListArgs "status" ""}}"
+             {{if html .ListArgs.Status | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+          <a href="?{{GetQueryParams .ListArgs "status" "approved"}}"
+             {{if and .ListArgs.Status (DerefString .ListArgs.Status | eq "approved")}}class="is-active"{{end}}>Yes</a>
+          <a href="?{{GetQueryParams .ListArgs "status" "rejected"}}"
+             {{if and .ListArgs.Status (DerefString .ListArgs.Status | eq "rejected")}}class="is-active"{{end}}>No</a>
+          <a href="?{{GetQueryParams .ListArgs "status" "pending"}}"
+             {{if and .ListArgs.Status (DerefString .ListArgs.Status | eq "pending")}}class="is-active"{{end}}>Pending</a>
+        </p>
+
+      </nav>
+    </div>
+  </div>
+{{end}}

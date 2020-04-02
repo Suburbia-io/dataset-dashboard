@@ -1,0 +1,37 @@
+{{define "admin-auth-base"}}
+  <!DOCTYPE html>
+  <html lang="en" class="has-background-dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ block "title" .}}Suburbia Admin Login{{ end }}</title>
+    {{if IsProd}}
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.8.0/css/bulma.min.css"
+            integrity="sha256-D9M5yrVDqFlla7nlELDaYZIpXfFWDytQtiV+TaH6F1I=" crossorigin="anonymous" />
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.min.css"
+            integrity="sha256-+N4/V/SbAFiW1MPBCXnfnP9QSN3+Keu+NlB+0ev/YKQ=" crossorigin="anonymous"/>
+    {{else}}
+      <link rel="stylesheet" href="/static/public/css/bulma-0.8.0.min.css"/>
+      <link rel="stylesheet" href="/static/public/css/fontawesome-free-5.11.2-web/css/all.min.css"/>
+    {{end}}
+    <link rel="shortcut icon" type="image/png" sizes="192x192" href="/static/public/favicons/grey192.png">
+
+    {{block "meta" .}}{{end}}
+  </head>
+  <body>
+
+  <section class="section">
+    <div class="container is-paddingless">
+      <div class="columns">
+        <div class="column is-one-fourth"></div>
+        <div class="column">
+          {{block "content" .}}{{end}}
+        </div>
+        <div class="column"></div>
+      </div>
+    </div>
+  </section>
+
+  </body>
+  </html>
+{{end}}

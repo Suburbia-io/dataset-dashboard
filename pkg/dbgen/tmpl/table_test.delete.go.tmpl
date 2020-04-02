@@ -1,0 +1,31 @@
+{{define "table_test.delete"}}
+func Test{{.RowType}}_Delete(t *testing.T) {
+	t.Parallel()
+	db, done := NewDBForTesting()
+	defer done()
+
+	// Insert a row.
+	row := New{{.RowType}}ForTesting(db)
+	if err := {{.RowType}}s.Insert(db, &row); err != nil {
+		t.Fatal(err)
+	}
+
+	// Delete the row.
+	err := {{.RowType}}s.Delete(
+		db,
+		{{range .KeyCols -}}row.{{.GoName}},{{end}}
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Row shouldn't exist.
+	_, err = {{.RowType}}s.Get(
+		db,
+		{{range .KeyCols -}}row.{{.GoName}},{{end}}
+	)
+	if !errors.DBNotFound.Is(err) {
+		t.Fatal(err)
+	}
+}
+{{end}}

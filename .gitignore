@@ -1,0 +1,13 @@
+/config.toml
+/.idea
+*.test
+/node_modules
+/static/public/build
+/static/fingerprints/build
+/static/corpmappings/build
+/static/locations/build
+/static/tags/build
+/static/customerusers/build
+tmp
+/static/manifest.json
+/storage/sftp

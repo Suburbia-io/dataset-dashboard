@@ -1,0 +1,82 @@
+@import "bulma-checkradio-72834fab5c";
+
+$hover-bg-color: rgba(125, 195, 232, 0.2); /* #7dc3e8 */
+$border-color: #dbdbdb;
+
+.table {
+  th.tag-name,
+  th.grade,
+  th.num-fingerprints,
+  th.num-line-items {
+    cursor: pointer;
+
+    .icon {
+      font-size: 0.8rem
+    }
+  }
+
+  &.is-hoverable.is-striped tbody tr:not(.is-selected):hover,
+  &.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(2n) {
+    background-color: $hover-bg-color;
+  }
+
+  td.num-fingerprints,
+  td.num-line-items {
+    text-align: right;
+  }
+}
+
+.nested-row {
+  border-bottom: 1px solid $border-color;
+  margin: 0 !important;
+
+  > .column {
+    padding: 0.5rem;
+
+    &.has-children {
+      cursor: pointer;
+    }
+  }
+
+  &:hover {
+    background-color: $hover-bg-color;
+  }
+
+  &.synthetic-row {
+    background-color: #fafafa;
+  }
+
+  > .column.description,
+  > .column.internal-notes {
+    word-break: break-word;
+  }
+
+  > .column.num-fingerprints,
+  > .column.num-line-items {
+    text-align: right;
+  }
+}
+
+.nested-header {
+  margin: 0 !important;
+  border-bottom: 2px solid $border-color;
+
+  > .column {
+    padding: .25rem .5rem;
+    color: #363636;
+    font-weight: 700;
+  }
+}
+
+.nested-header,
+.nested-row {
+  > .column.is-1-point-5 {
+    flex: none;
+    width: 1 / 12 * 1.5 * 100%;
+  }
+
+  > .column.is-0-point-5 {
+    flex: none;
+    width: 1 / 12 * 0.5 * 100%;
+  }
+}

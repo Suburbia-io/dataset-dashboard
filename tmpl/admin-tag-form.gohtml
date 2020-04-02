@@ -1,0 +1,96 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <style>
+    .field > .control > button[type="submit"] {
+      margin-top: 1rem;
+    }
+  </style>
+{{end}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL `dataset-list`}}">Datasets</a></li>
+          <li><a href="{{ReverseURL `dataset-edit` `DatasetID` .Dataset.DatasetID}}">{{.Dataset.Name}}</a></li>
+          <li>
+            <a href="{{ReverseURL `tag-list` `DatasetID` .Dataset.DatasetID `TagTypeID` .TagType.TagTypeID}}">
+              {{.TagType.TagType}}
+            </a>
+          </li>
+          <li class="is-active">
+            <a href="" aria-current="page">
+              {{if .Tag.Tag}}{{.Tag.Tag}}{{else}}Add Tag{{end}}
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </nav>
+
+  <div class="columns is-desktop">
+    <div class="column is-half">
+      {{with .Tag}}
+        <form method="post" action="../submit/">
+          {{$.Session.CSRFField}}
+
+          <input type="hidden" name="DatasetID" value="{{.DatasetID}}">
+          <input type="hidden" name="TagTypeID" value="{{.TagTypeID}}">
+          <input type="hidden" name="TagID" value="{{.TagID}}">
+
+          <div class="field">
+            <label class="label">Tag</label>
+            <div class="control">
+              <input class="input" type="text" name="Tag" value="{{.Tag}}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="tag-description" class="label">Description</label>
+            <textarea id="tag-description" class="textarea" name="Description">{{.Description}}</textarea>
+          </div>
+
+          <div class="field">
+            <label for="tag-internal-notes" class="label">Internal Notes</label>
+            <textarea id="tag-internal-notes" class="textarea" name="InternalNotes">{{.InternalNotes}}</textarea>
+          </div>
+
+          <div class="field">
+            <label class="label">Grade</label>
+            <div class="control">
+              <input class="input" type="number" name="Grade" min="0" max="10" value="{{.Grade}}">
+              <p class="help">Tag quality grade between 0 and 10</p>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="checkbox">
+              <input type="checkbox" name="IsIncluded" {{ if .IsIncluded }} checked {{ end }}>
+              Is Included
+            </label>
+            <p class="help">Whether or not this tag is included in the build</p>
+          </div>
+
+          <div class="field">
+            <div class="control">
+              <button type="submit" class="button is-link">Save</button>
+            </div>
+          </div>
+        </form>
+      {{end}}
+    </div>
+  </div>
+
+  {{if .Tag.TagID}}
+    <form method="post" action="delete/">
+      {{$.Session.CSRFField}}
+      <input type="hidden" name="DatasetID" value="{{.Tag.DatasetID}}">
+      <input type="hidden" name="TagTypeID" value="{{.Tag.TagTypeID}}">
+      <input type="hidden" name="TagID" value="{{.Tag.TagID}}">
+      <button type="submit" class="button is-link is-danger">Delete</button>
+    </form>
+  {{end}}
+
+{{end}}

@@ -1,0 +1,104 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li class="is-active"><a href="" aria-current="page">Audit Trail</a></li>
+        </ul>
+      </nav>
+    </div>
+  </nav>
+
+  <form id="search-form" method="get">
+      {{template "admin-list-search" .}}
+  </form>
+
+  <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth" style="table-layout: fixed;">
+    <thead>
+    <tr>
+      <th>Timestamp
+      </th>
+      <th>Actor
+      </th>
+      <th>Subject
+      </th>
+      <th>Action
+      </th>
+      <th>Payload</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range .AuditTrails}}
+      <tr>
+        <td>{{template "format-time" .CreatedAt}}</td>
+        <td>
+            {{ if .User}}
+              <a href="{{ReverseURL "user-edit" "UserID" .User.UserID}}">{{.User.Name}}</a>
+            {{ else }}
+              n/a
+            {{ end }}
+        </td>
+        <td>
+            {{ if .RelatedTable }}
+
+                {{ if eq .RelatedTable "datasets" }}
+                  <a href="{{ReverseURL "dataset-edit" "DatasetID" .RelatedID}}">Dataset</a>
+
+                {{ else if eq .RelatedTable "customer_datasets" }}
+                  <span title="{{ .RelatedID }}">CustomerDatasetAccess</span>
+
+                {{ else if eq .RelatedTable "customers" }}
+                  <a href="{{ReverseURL "customer-edit" "CustomerID" .RelatedID}}">Customer</a>
+
+                {{ else if eq .RelatedTable "corporations" }}
+                  <a href="{{ReverseURLFromAuditLogPayload "corporation-edit" .Payload "DatasetID" "CorporationID" }}">Corporation</a>
+
+                {{ else if eq .RelatedTable "corporation_types" }}
+                  <a href="{{ReverseURLFromAuditLogPayload "corporation-type-edit" .Payload "DatasetID" "CorporationTypeID" }}">CorporationType</a>
+
+                {{ else if eq .RelatedTable "users" }}
+                  <a href="{{ReverseURL "user-edit" "UserID" .RelatedID}}">User</a>
+
+                {{ else if eq .RelatedTable "fingerprints" }}
+                  <span title="{{ .RelatedID }}">Fingerprint</span>
+
+                {{ else if eq .RelatedTable "geonames" }}
+                  <span title="{{ .RelatedID }}">GeoName</span>
+
+                {{ else if eq .RelatedTable "tags" }}
+                  <a href="{{ReverseURLFromAuditLogPayload "tag-edit" .Payload "DatasetID" "TagTypeID" "TagID" }}">Tag</a>
+
+                {{ else if eq .RelatedTable "tag_types" }}
+                  <a href="{{ReverseURLFromAuditLogPayload "tag-type-edit" .Payload "DatasetID" "TagTypeID"}}">TagType</a>
+
+                {{ else if eq .RelatedTable "locations" }}
+                  <span title="{{ .RelatedID }}">Location</span>
+
+                {{ else }}
+                  n/a
+                {{ end}}
+
+            {{ else }}
+              n/a
+            {{ end}}
+
+        </td>
+        <td>{{ .Type }}</td>
+        <td style="
+    white-space: nowrap; overflow:hidden">
+            {{ .Payload }}
+        </td>
+      </tr>
+    {{else}}
+      <tr>
+        <td colspan="6" class="has-text-centered">No results</td>
+      </tr>
+    {{end}}
+    </tbody>
+    <tfoot></tfoot>
+  </table>
+
+{{end}}

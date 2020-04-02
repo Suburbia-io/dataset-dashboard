@@ -1,0 +1,111 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li class="is-active"><a href="" aria-current="page">Users</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+      <p class="level-item"><a class="button is-link" href="{{ReverseURL "user-create"}}">Add User</a></p>
+    </div>
+  </nav>
+
+  <div class="columns">
+    <div class="column">
+      <form id="search-form" method="get">
+        {{template "admin-list-search" .}}
+      </form>
+      <div class="table-container">
+        <table class="table is-striped is-hoverable is-fullwidth">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Customer</th>
+            <th>Created</th>
+            <th>Archived</th>
+            <th>Last Active</th>
+            <th>Admin</th>
+            <th>Super Admin</th>
+            <th>Labeler</th>
+          </tr>
+          </thead>
+          <tbody>
+          {{range .Users}}
+            <tr>
+              <td>
+                <a href="{{ReverseURL "user-edit" "UserID" .UserID}}">{{.Name}}</a>
+              </td>
+              <td>{{.Email}}</td>
+              <td>{{.CustomerName}}</td>
+              <td>{{template "format-time" .CreatedAt}}</td>
+              <td>{{template "format-time" .ArchivedAt}}</td>
+              <td>{{template "format-time" .LastActiveAt}}</td>
+              <td>{{if .IsRoleAdmin}}Yes{{else}}No{{end}}</td>
+              <td>{{if .IsRoleSuperAdmin}}Yes{{else}}No{{end}}</td>
+              <td>{{if .IsRoleLabeler}}Yes{{else}}No{{end}}</td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="6" class="has-text-centered">No results</td>
+            </tr>
+          {{end}}
+          </tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="column is-natural-width">
+      <nav class="panel filters">
+        <p class="panel-heading">
+          Filters
+        </p>
+
+        {{template "admin-list-archived-filter" .}}
+
+        <p class="panel-block filter-label">
+          Is Admin
+        </p>
+        <p class="panel-tabs">
+          <a href="?{{GetQueryParams .ListArgs "is-admin" ""}}"
+             {{if html .ListArgs.IsAdmin | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+          <a href="?{{GetQueryParams .ListArgs "is-admin" "true"}}"
+             {{if and .ListArgs.IsAdmin (DerefBool .ListArgs.IsAdmin)}}class="is-active"{{end}}>Yes</a>
+          <a href="?{{GetQueryParams .ListArgs "is-admin" "false"}}"
+             {{if and .ListArgs.IsAdmin (not (DerefBool .ListArgs.IsAdmin))}}class="is-active"{{end}}>No</a>
+        </p>
+
+        <p class="panel-block filter-label">
+          Is Super Admin
+        </p>
+        <p class="panel-tabs">
+          <a href="?{{GetQueryParams .ListArgs "is-super-admin" ""}}"
+             {{if html .ListArgs.IsSuperAdmin | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+          <a href="?{{GetQueryParams .ListArgs "is-super-admin" "true"}}"
+             {{if and .ListArgs.IsSuperAdmin (DerefBool .ListArgs.IsSuperAdmin)}}class="is-active"{{end}}>Yes</a>
+          <a href="?{{GetQueryParams .ListArgs "is-super-admin" "false"}}"
+             {{if and .ListArgs.IsSuperAdmin (not (DerefBool .ListArgs.IsSuperAdmin))}}class="is-active"{{end}}>No</a>
+        </p>
+
+        <p class="panel-block filter-label">
+          Is Labeler
+        </p>
+        <p class="panel-tabs">
+          <a href="?{{GetQueryParams .ListArgs "is-labeler" ""}}"
+             {{if html .ListArgs.IsLabeler | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+          <a href="?{{GetQueryParams .ListArgs "is-labeler" "true"}}"
+             {{if and .ListArgs.IsLabeler (DerefBool .ListArgs.IsLabeler)}}class="is-active"{{end}}>Yes</a>
+          <a href="?{{GetQueryParams .ListArgs "is-labeler" "false"}}"
+             {{if and .ListArgs.IsLabeler (not (DerefBool .ListArgs.IsLabeler))}}class="is-active"{{end}}>No</a>
+        </p>
+
+      </nav>
+    </div>
+  </div>
+{{end}}

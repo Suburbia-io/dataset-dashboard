@@ -1,0 +1,74 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <script defer src="/static/tags/{{ Manifest "tags.js" }}"></script>
+  <link rel="stylesheet" href="/static/tags/{{ Manifest "tags.css" }}">
+{{end}}
+
+{{define "content"}}
+  <div id="tags" data-tags="{{.TagsJSON}}"></div>
+  <div id="dataset-id" data-dataset-id="{{.Dataset.DatasetID}}"></div>
+  <div id="tag-type-id" data-tag-type-id="{{.TagType.TagTypeID}}"></div>
+
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL `dataset-list`}}">Datasets</a></li>
+          <li><a href="{{ReverseURL `dataset-edit` `DatasetID` .Dataset.DatasetID}}">{{.Dataset.Name}}</a></li>
+          <li class="is-active"><a href="" aria-current="page">{{.TagType.TagType}}</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+      <div class="level-item">
+        {{with .TagType}}
+          <form class="level-item" method="post"
+                action="{{ReverseURL `update-tag-counts` `DatasetID` .DatasetID `TagTypeID` .TagTypeID}}">
+            {{$.Session.CSRFField}}
+            <input class="input" type="hidden" name="DatasetID" value="{{.DatasetID}}">
+            <input class="input" type="hidden" name="TagTypeID" value="{{.TagTypeID}}">
+            <button class="button is-link">Update Tag Counts</button>
+          </form>
+
+          <a class="button is-link"
+             href="{{ReverseURL `tag-create` `DatasetID` .DatasetID `TagTypeID` .TagTypeID}}">
+            Add Tag
+          </a>
+        {{end}}
+      </div>
+    </div>
+  </nav>
+
+  <div class="columns">
+    <div class="column">
+      <form id="search-form" method="get">
+        {{template "admin-list-search" .}}
+      </form>
+
+      <div id="tags-table-app"></div>
+    </div>
+
+    <div class="column is-natural-width">
+      <nav class="panel filters">
+        <p class="panel-heading">
+          Filters
+        </p>
+
+        <p class="panel-block filter-label">
+          Is Included
+        </p>
+        <p class="panel-tabs">
+          <a href="?{{GetQueryParams .ListArgs "is-included" ""}}"
+             {{if html .ListArgs.IsIncluded | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+          <a href="?{{GetQueryParams .ListArgs "is-included" "true"}}"
+             {{if and .ListArgs.IsIncluded (DerefBool .ListArgs.IsIncluded)}}class="is-active"{{end}}>Yes</a>
+          <a href="?{{GetQueryParams .ListArgs "is-included" "false"}}"
+             {{if and .ListArgs.IsIncluded (not (DerefBool .ListArgs.IsIncluded))}}class="is-active"{{end}}>No</a>
+        </p>
+      </nav>
+    </div>
+
+  </div>
+{{end}}

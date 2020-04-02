@@ -1,0 +1,15 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <script defer src="/static/fingerprints/{{ Manifest "fingerprints.js" }}"></script>
+  <link rel="stylesheet" href="/static/fingerprints/{{ Manifest "fingerprints.css" }}">
+  <script>
+      window.datasetID = "{{ .Args.DatasetID }}"
+  </script>
+{{end}}
+
+{{define "precontent"}}
+
+  <div id="fingerprint-app"></div>
+
+{{end}}

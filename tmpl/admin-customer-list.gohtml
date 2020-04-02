@@ -1,0 +1,63 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li class="is-active"><a href="" aria-current="page">Customers</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+      <p class="level-item"><a class="button is-link" href="{{ReverseURL `customer-create`}}">Add Customer</a></p>
+    </div>
+  </nav>
+
+  <div class="columns">
+    <div class="column">
+      <form id="search-form" method="get">
+        {{template "admin-list-search" .}}
+      </form>
+      <div class="table-container">
+        <table class="table is-striped is-hoverable is-fullwidth">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Created</th>
+            <th>Archived</th>
+          </tr>
+          </thead>
+          <tbody>
+          {{range .Customers}}
+            <tr>
+              <td>
+                <a href="{{ReverseURL "customer-edit" "CustomerID" .CustomerID}}">{{.Name}}</a>
+              </td>
+              <td>{{template "format-time" .CreatedAt}}</td>
+              <td>{{template "format-time" .ArchivedAt}}</td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="3" class="has-text-centered">No results</td>
+            </tr>
+          {{end}}
+          </tbody>
+          <tfoot>
+
+          </tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="column is-natural-width">
+      <nav class="panel filters">
+        <p class="panel-heading">
+          Filters
+        </p>
+        {{template "admin-list-archived-filter" .}}
+      </nav>
+    </div>
+  </div>
+{{end}}

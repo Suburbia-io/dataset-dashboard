@@ -1,0 +1,99 @@
+{{template "customer-user-base" .}}
+
+{{define "title"}}Suburbia Dashboard{{end}}
+
+{{define "content"}}
+{{/*<header class="bg-white shadow">*/}}
+{{/*  <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">*/}}
+{{/*    <h1 class="text-3xl font-bold leading-tight text-gray-900">*/}}
+{{/*      XXX */}}
+{{/*    </h1>*/}}
+{{/*  </div>*/}}
+{{/*</header>*/}}
+<main>
+  <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+
+    <div class="py-12 bg-white">
+      <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="mt-10">
+          <ul class="md:grid md:grid-cols-2 md:col-gap-8 md:row-gap-10">
+            <li class="mt-10 md:mt-0">
+              <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    SFTP Access
+                  </h3>
+                </div>
+                <div>
+                  <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt class="text-sm leading-5 font-medium text-gray-500">
+                        Hostname
+                      </dt>
+                      <dd class="mt-1 text-sm leading-5 text-gray-900 sm:mt-0 sm:col-span-2">
+                        {{.SFTPHostname}}
+                      </dd>
+                    </div>
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt class="text-sm leading-5 font-medium text-gray-500">
+                        Username
+                      </dt>
+                      <dd class="mt-1 text-sm leading-5 text-gray-900 sm:mt-0 sm:col-span-2">
+                        {{.Session.User.SFTPUsername}}
+                      </dd>
+                    </div>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                      <dt class="text-sm leading-5 font-medium text-gray-500">
+                        Public key
+                      </dt>
+                      <dd class="mt-1 text-sm leading-5 text-gray-900 sm:mt-0 sm:col-span-2">
+                        {{if .PubKeyFingerprint}}
+                        {{.PubKeyFingerprint}}
+                        {{else}}
+                        Not set
+                        {{end}}
+                      </dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+            </li>
+
+            <li>
+              <div class="bg-white shadow overflow-hidden sm:rounded-lg">
+                <div class="px-4 py-5 border-b border-gray-200 sm:px-6">
+                  <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    Datasets
+                  </h3>
+                </div>
+                <div>
+                  <div class="bg-gray-50 px-4 py-5 sm:px-6">
+                    {{range .Datasets}}
+                    <div class="mt-1 text-sm leading-5 text-gray-900 sm:mt-0 sm:col-span-2 pb-2 last:pb-0">
+                      {{.Name}}
+                    </div>
+                    {{else}}
+                    <div class="mt-1 text-sm leading-5 text-gray-900 sm:mt-0 sm:col-span-2">
+                      No data sets available
+                    </div>
+                    {{end}}
+                  </div>
+                </div>
+              </div>
+            </li>
+
+            <li class="mt-10 md:mt-0">
+            </li>
+
+            <li class="mt-10 md:mt-0">
+            </li>
+
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+{{end}}

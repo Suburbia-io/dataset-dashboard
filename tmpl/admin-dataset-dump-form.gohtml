@@ -1,0 +1,41 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <script>
+    window.downloadDump = function() {
+      let checkboxes = document.getElementsByClassName("table-checkbox");
+      let tableNames = [];
+      for (let i = 0; i < checkboxes.length; i++) {
+        if (checkboxes[i].checked) {
+          tableNames.push(checkboxes[i].value);
+        }
+      }
+      let commaSeparated = tableNames.join(',');
+      window.open({{ReverseURL `dataset-dump-submit` `DatasetID` .Dataset.DatasetID}} + '?tables=' + commaSeparated, '_blank');
+    }
+  </script>
+{{end}}
+
+{{define "content"}}
+
+  <p>
+    <span class="tag is-white is-medium">Select the tables you want to include in your dump of dataset </span>
+    <span class="tag is-primary is-medium">{{ .Dataset.Name }}</span>
+  </p>
+  <hr>
+
+  <form autocomplete="off">
+    {{range .DumpableTables}}
+    <div>
+      <label class="checkbox">
+        <input type="checkbox" value="{{ . }}" class="table-checkbox">
+        {{ . }}
+      </label>
+    </div>
+    {{end}}
+
+    <hr>
+    <button type="button" class="button is-primary" onclick="window.downloadDump()">Download</button>
+  </form>
+
+{{end}}

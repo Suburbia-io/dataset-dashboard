@@ -1,0 +1,21 @@
+{{define "customer-user-auth-base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ block "title" .}}Suburbia Login{{ end }}</title>
+  <link rel="stylesheet" href="/static/customerusers/{{ Manifest "customerusers.css" }}">
+  <link rel="shortcut icon" type="image/png" sizes="192x192" href="/static/public/favicons/grey192.png">
+
+  {{block "meta" .}}{{end}}
+
+</head>
+<body>
+
+{{block "content" .}}{{end}}
+
+</body>
+</html>
+{{end}}
+

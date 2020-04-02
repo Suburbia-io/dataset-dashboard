@@ -1,0 +1,42 @@
+{{define "table_test.direct_update"}}
+{{range .DirectUpdateCols}}
+
+func Test{{$.RowType}}_Update{{.GoName}}(t *testing.T) {
+	t.Parallel()
+	db, done := NewDBForTesting()
+	defer done()
+
+	// Insert a row.
+	row := New{{$.RowType}}ForTesting(db)
+	if err := {{$.RowType}}s.Insert(db, &row); err != nil {
+		t.Fatal(err)
+	}
+
+	// Get random value for field from new row.
+	row.{{.GoName}} = New{{$.RowType}}ForTesting(db).{{.GoName}}
+
+	err := {{$.RowType}}s.Update{{.GoName}}(
+		db,
+		{{ range $.KeyCols -}}row.{{.GoName}},{{end}}
+		row.{{.GoName}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure row from database matches inserted row.
+	row2, err := {{$.RowType}}s.Get(
+		db,
+		{{range $.KeyCols -}}
+		row.{{.GoName}},{{end}}
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !row.Equals(row2) {
+		t.Fatalf("%v != %v", row, row2)
+	}
+}
+
+{{end}}
+{{end}}

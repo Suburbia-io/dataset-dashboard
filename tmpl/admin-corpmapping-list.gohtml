@@ -1,0 +1,38 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+
+<script>
+  window.corpmappings = {
+    corpTypeID: {{ .CorpType.CorporationTypeID }},
+    datasetID: {{ .Dataset.DatasetID }},
+    tagTypes: {{ .TagTypesJSON }},
+    corpmappings: {{ .CorpMappingsJSON }},
+    corps: {{ .CorporationsJSON }}
+  };
+</script>
+
+<script defer src="/static/corpmappings/{{ Manifest "corpmappings.js" }}"></script>
+<link rel="stylesheet" type="text/css" href="/static/corpmappings/{{ Manifest "corpmappings.css" }}">
+
+{{end}}
+
+{{define "content"}}
+<nav class="level">
+  <div class="level-left">
+    <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+      <ul>
+        <li class="is-active"><span class="tag is-large is-primary"
+                                    style="margin-right: 8px;">{{ .CorpType.CorporationType }}</span> mappings
+        </li>
+      </ul>
+    </nav>
+  </div>
+</nav>
+
+<div class="columns" id="corpmappings-app">
+
+  <corpmappings-app></corpmappings-app>
+
+</div>
+{{end}}

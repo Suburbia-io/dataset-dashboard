@@ -1,0 +1,11 @@
+@import "~vue-select/src/scss/vue-select.scss";
+
+.tag-stats {
+  justify-content: flex-end;
+  display: flex;
+  width: 100%;
+
+  > span {
+    padding-left: 1.5rem;
+  }
+}

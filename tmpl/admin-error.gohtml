@@ -1,0 +1,29 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <style>
+    .control {
+      margin-top: 1.25em;
+    }
+  </style>
+{{end}}
+
+{{define "content"}}
+  <div class="columns">
+    <div class="column is-offset-one-fifth-widescreen is-three-fifths-widescreen">
+      <article class="message is-danger">
+        <div class="message-header">
+          <p>Error</p>
+        </div>
+        <div class="message-body">
+          <div>
+            {{.Error}}
+          </div>
+          <div class="control has-text-centered">
+            <a href="#" class="button is-link" onclick="window.history.back();">Try again</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+{{end}}

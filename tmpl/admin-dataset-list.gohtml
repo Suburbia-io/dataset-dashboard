@@ -1,0 +1,99 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li class="is-active"><a href="" aria-current="page">Datasets</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+      {{if .Session.User.IsRoleAdmin}}
+        <p class="level-item"><a class="button is-link" href="{{ReverseURL `dataset-create`}}">Add Dataset</a></p>
+      {{end}}
+    </div>
+  </nav>
+
+  <div class="columns">
+    <div class="column">
+      <form id="search-form" method="get">
+        {{template "admin-list-search" .}}
+      </form>
+      <div class="table-container">
+        <table class="table is-striped is-hoverable is-fullwidth">
+          <thead>
+          <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            {{if .Session.User.IsRoleAdmin}}
+              <th>Manageable</th>
+            {{end}}
+            <th>Created</th>
+            {{if .Session.User.IsRoleAdmin}}
+              <th>Archived</th>
+            {{end}}
+            <th></th>
+          </tr>
+          </thead>
+          <tbody>
+          {{range .Datasets}}
+            <tr>
+              <td>
+                <a href="{{ReverseURL "dataset-edit" "DatasetID" .DatasetID}}">{{.Name}}</a>
+              </td>
+              <td>{{.Slug}}</td>
+              {{if $.Session.User.IsRoleAdmin}}
+                <td>{{if .Manageable}}Yes{{else}}No{{end}}</td>
+              {{end}}
+              <td>{{template "format-time" .CreatedAt}}</td>
+              {{if $.Session.User.IsRoleAdmin}}
+                <td>{{template "format-time" .ArchivedAt}}</td>
+              {{end}}
+              <td>
+                {{if and .Manageable $.Session.User.IsRoleLabeler}}
+                  <a class="button is-small is-pulled-right"
+                     href="{{ReverseURL "location-list" "DatasetID" .DatasetID}}">Locations</a>
+                  <a class="button is-small is-pulled-right"
+                     href="{{ReverseURL "fingerprint-list" "DatasetID" .DatasetID}}">Fingerprints</a>
+                {{end}}
+              </td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="6" class="has-text-centered">No results</td>
+            </tr>
+          {{end}}
+          </tbody>
+          <tfoot></tfoot>
+        </table>
+      </div>
+    </div>
+
+    <div class="column is-natural-width">
+      {{if .Session.User.IsRoleAdmin}}
+        <nav class="panel filters">
+          <p class="panel-heading">Filters</p>
+
+          {{template "admin-list-archived-filter" .}}
+
+          <p class="panel-block filter-label">
+            Manageable
+          </p>
+          <p class="panel-tabs">
+              {{/* The Go templates templates provides only an awkward to deal with *bool but this works. */}}
+              {{/* https://stackoverflow.com/questions/32774234/show-default-content-in-a-template-if-an-object-is-nil-otherwise-show-based-on-t/50032009#50032009 */}}
+            <a href="?{{GetQueryParams .ListArgs "manageable" ""}}"
+               {{if html .ListArgs.Manageable | eq "&lt;nil&gt;"}}class="is-active"{{end}}>All</a>
+            <a href="?{{GetQueryParams .ListArgs "manageable" "true"}}"
+               {{if and .ListArgs.Manageable (DerefBool .ListArgs.Manageable)}}class="is-active"{{end}}>Yes</a>
+            <a href="?{{GetQueryParams .ListArgs "manageable" "false"}}"
+               {{if and .ListArgs.Manageable (not (DerefBool .ListArgs.Manageable))}}class="is-active"{{end}}>No</a>
+          </p>
+        </nav>
+      {{end}}
+    </div>
+  </div>
+{{end}}

@@ -1,0 +1,95 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+  <style>
+    hr {
+      margin-top: 0.5rem;
+    }
+  </style>
+{{end}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL "customer-list"}}">Customers</a></li>
+            {{ if .Customer.Name }}
+              <li class="is-active"><a href="" aria-current="page">{{.Customer.Name}}</a></li>
+            {{ else }}
+              <li class="is-active"><a href="" aria-current="page">Add Customer</a></li>
+            {{end}}
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+    </div>
+  </nav>
+
+  {{with .Customer}}
+    <form method="post" action="../submit/">
+      {{$.Session.CSRFField}}
+      <div class="columns is-desktop">
+        <div class="column">
+          <input type="hidden" name="CustomerID" value="{{.CustomerID}}">
+
+          <div class="field">
+            <label class="label">Name</label>
+            <div class="control">
+              <input class="input" type="text" name="Name" value="{{.Name}}">
+            </div>
+          </div>
+
+          {{if .CustomerID}}
+            <div class="field">
+              <label class="checkbox">
+                <input type="checkbox" name="Archived" {{ if .ArchivedAt }} checked {{ end }}>
+                Archived
+              </label>
+            </div>
+
+            {{/* Read-only fields */}}
+            <div class="field">
+              <label class="label">Created</label>
+              <div class="control">
+                {{template "format-time" .CreatedAt}}
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Archived</label>
+              <div class="control">
+                {{template "format-time" .ArchivedAt}}
+              </div>
+            </div>
+          {{ end }}
+
+          <div class="field">
+            <div class="control">
+              <button type="submit" class="button is-link">Save</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="column">
+          {{ if .CustomerID }}
+            <hr class="is-hidden-desktop">
+            <h2 class="title is-5">Access to datasets</h2>
+
+            {{ range $idx, $ds := $.Datasets }}
+              <div class="field">
+                <label class="checkbox">
+                  <input type="checkbox" name="DatasetMappings.{{ $idx }}.DatasetID"
+                    {{ if $ds.Mapped }} checked {{ end }}
+                     value="{{ $ds.Dataset.DatasetID }}">
+                    {{ .Name }}
+                </label>
+              </div>
+            {{ end }}
+          {{ end }}
+        </div>
+      </div>
+    </form>
+  {{end}}
+{{end}}

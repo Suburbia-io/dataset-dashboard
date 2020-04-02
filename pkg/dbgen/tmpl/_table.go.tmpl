@@ -1,0 +1,78 @@
+{{/*
+   *
+   * Partial for auto-filling UUID columns. Context is []*rawCol.
+   *
+   */}}
+{{define "autoUUIDs"}}
+{{range . -}}
+
+{{if .AutoUUID -}}
+if row.{{.GoName}} == "" {
+	row.{{.GoName}} = crypto.NewUUID()
+}
+
+{{end -}}
+{{end -}}
+{{end}}
+
+{{/*
+   *
+   * Partial for validating columns in a row. Context is a []*rawCol.
+   *
+   */}}
+{{define "validateAndSanitizeRow"}}
+{{range . -}}
+
+{{if .Sanitizer -}}
+// Sanitize {{.GoName}}.
+row.{{.GoName}} = sanitize.{{.Sanitizer}}(row.{{.GoName}})
+
+{{end -}} {{/* if */}}
+
+{{if .Validator -}}
+// Validate {{.GoName}}.
+if err := validate.{{.Validator}}(row.{{.GoName}}); err != nil {
+	e := err.(errors.Error)
+	return e.Wrap("Validation failed on {{.GoName}}.")
+}
+
+{{end -}} {{/* if */}}
+{{end -}} {{/* range */}}
+{{end -}} {{/* define */}}
+
+{{/*
+   *
+   * Partial for processing errors from update functions.
+   *
+   */}}
+{{define "returnUpdateError" -}}
+if err == nil {
+	n, err := result.RowsAffected()
+	if err != nil {
+		return errors.Unexpected.
+			Wrap("{{.RowType}} update rows affected failed: %w", err).
+			Alert()
+	}
+	switch n {
+	case 1:
+		return nil
+
+	case 0:
+		return errors.DBNotFound
+
+	default:
+		return errors.Unexpected.
+			Wrap("{{.RowType}} update affected %d rows.", n).
+			Alert()
+	}
+}
+
+// Return application error.
+if err := translateDBError(err); err != nil {
+	return err
+}
+
+return errors.Unexpected.
+	Wrap("{{.RowType}} update failed: %w", err).
+	Alert()
+{{- end}}

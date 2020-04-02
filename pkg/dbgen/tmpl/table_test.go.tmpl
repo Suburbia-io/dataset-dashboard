@@ -1,0 +1,32 @@
+{{define "table_test.go"}}
+package {{.Package}}
+
+// ----------------------------------------------------------------------------
+// THIS FILE IS GENERATED.
+// ----------------------------------------------------------------------------
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/Suburbia-io/dashboard/pkg/errors"
+)
+
+{{template "table_test.insert" .}}
+
+{{if (not .NoUpdateTests)}}
+
+{{if .Updatable}}
+{{template "table_test.upsert" .}}
+{{template "table_test.update" .}}
+{{end}}
+
+{{template "table_test.direct_update" .}}
+
+{{end}}
+
+{{template "table_test.delete" .}}
+{{template "table_test.getby" .}}
+{{template "table_test.list" .}}
+
+{{end}} {{/* define */}}

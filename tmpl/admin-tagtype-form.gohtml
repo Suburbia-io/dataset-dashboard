@@ -1,0 +1,63 @@
+{{template "admin-base" .}}
+
+{{define "content"}}
+  <nav class="level">
+    <div class="level-left">
+      <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+        <ul>
+          <li><a href="{{ReverseURL `dataset-list`}}">Datasets</a></li>
+          <li><a href="{{ReverseURL `dataset-edit` `DatasetID` .TagType.DatasetID}}">{{.Dataset.Name}}</a></li>
+          <li class="is-active">
+            <a href="" aria-current="page">
+              {{if .TagType.TagType}}{{.TagType.TagType}}{{else}}Add Tag Type{{end}}
+            </a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="level-right">
+    </div>
+  </nav>
+
+  <div class="columns is-desktop">
+    <div class="column is-half">
+      {{with .TagType}}
+        <form method="post" action="../submit/">
+          {{$.Session.CSRFField}}
+
+          <input type="hidden" name="DatasetID" value="{{.DatasetID}}">
+          <input type="hidden" name="TagTypeID" value="{{.TagTypeID}}">
+
+          <div class="field">
+            <label class="label">Tag Type</label>
+            <div class="control">
+              <input class="input" type="text" name="TagType" value="{{.TagType}}">
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="tag-type-description" class="label">Description</label>
+            <textarea id="tag-type-description" class="textarea" name="Description">{{.Description}}</textarea>
+          </div>
+
+          <div class="field">
+            <div class="control">
+              <button type="submit" class="button is-link">Save</button>
+            </div>
+          </div>
+        </form>
+      {{end}}
+    </div>
+  </div>
+
+  {{if .TagType.TagTypeID}}
+    <form method="post" action="delete/">
+      {{$.Session.CSRFField}}
+      <input type="hidden" name="DatasetID" value="{{.TagType.DatasetID}}">
+      <input type="hidden" name="TagTypeID" value="{{.TagType.TagTypeID}}">
+      <button type="submit" class="button is-link is-danger">Delete</button>
+    </form>
+  {{end}}
+
+{{end}}

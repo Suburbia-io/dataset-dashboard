@@ -1,0 +1,268 @@
+{{template "admin-base" .}}
+
+{{define "meta"}}
+<style>
+  hr {
+    margin-top: 0.5rem;
+  }
+</style>
+{{end}}
+
+{{define "content"}}
+<nav class="level">
+  <div class="level-left">
+    <nav class="breadcrumb is-medium" aria-label="breadcrumbs">
+      <ul>
+        <li><a href="{{ReverseURL "dataset-list"}}">Datasets</a></li>
+        {{ if .Dataset.Name }}
+        <li class="is-active"><a href="" aria-current="page">{{.Dataset.Name}}</a></li>
+        {{ else }}
+        <li class="is-active"><a href="" aria-current="page">Add Dataset</a></li>
+        {{end}}
+      </ul>
+    </nav>
+  </div>
+
+  <div class="level-right">
+    {{if .Dataset.DatasetID}}
+    <div class="control is-grouped">
+      {{if .Dataset.Manageable }}
+      {{if $.Session.User.IsRoleLabeler}}
+      <a class="button" href="{{ReverseURL "location-list" "DatasetID" .Dataset.DatasetID}}">
+        Locations
+      </a>
+      <a class="button" href="{{ReverseURL "fingerprint-list" "DatasetID" .Dataset.DatasetID}}">
+        Fingerprints
+      </a>
+      {{end}}
+      {{if $.Session.User.IsRoleAdmin}}
+      <a class="button is-link" href="{{ReverseURL `tag-type-create` `DatasetID` .Dataset.DatasetID}}">
+        Add Tag Type
+      </a>
+      <a class="button is-link"
+         href="{{ReverseURL `corporation-type-create` `DatasetID` .Dataset.DatasetID}}">
+        Add Corporation Type
+      </a>
+      <a class="button is-link" href="{{ReverseURL `corporation-create` `DatasetID` .Dataset.DatasetID}}">
+        Add Corporation
+      </a>
+      {{end}}
+      {{ end }}
+    </div>
+    {{end}}
+  </div>
+</nav>
+
+<div class="columns is-desktop">
+  <div class="column">
+    {{with .Dataset}}
+    <form method="post" action="{{ReverseURL "dataset-form-submit"}}">
+      {{$.Session.CSRFField}}
+
+      <input type="hidden" name="DatasetID" value="{{.DatasetID}}">
+
+      {{if $.Session.User.IsRoleAdmin}}
+      <div class="field">
+        <div class="control">
+          <a class="button is-link"
+             href="{{ReverseURL "dataset-dump-form" `DatasetID` .Dataset.DatasetID}}">
+            New Database Dump
+          </a>
+
+          <a class="button is-default"
+             href="{{ReverseURL "dataset-export-v1"}}?datasetID={{.DatasetID}}&fullExport=1">
+             Legacy Sqlite Export
+          </a>
+        </div>
+      </div>
+      {{end}}
+
+      <div class="field">
+        <label class="label">Dataset ID</label>
+        <div class="control">
+          {{.DatasetID}}
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Name</label>
+        <div class="control">
+          {{if and $.Session.User.IsRoleLabeler (not $.Session.User.IsRoleAdmin)}}
+          {{.Name}}
+          {{else}}
+          <input class="input" type="text" name="Name" value="{{.Name}}">
+          {{end}}
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Slug</label>
+        <div class="control">
+          {{if and $.Session.User.IsRoleLabeler (not $.Session.User.IsRoleAdmin)}}
+          {{.Slug}}
+          {{else}}
+          <input class="input" type="text" name="Slug" value="{{.Slug}}">
+          <p class="help">This is used as the folder name in the SFTP server</p>
+          {{end}}
+        </div>
+      </div>
+
+      {{if $.Session.User.IsRoleAdmin}}
+      <div class="field">
+        <label class="checkbox">
+          <input type="checkbox" name="Manageable" {{ if .Manageable }}checked{{ end }}>
+          Manageable
+        </label>
+      </div>
+      {{end}}
+
+      {{if .DatasetID}}
+      {{if $.Session.User.IsRoleAdmin}}
+      <div class="field">
+        <label class="checkbox">
+          <input type="checkbox" name="Archived" {{ if .ArchivedAt }}checked{{ end }}>
+          Archived
+        </label>
+      </div>
+      {{end}}
+
+      {{/* Read-only fields */}}
+      <div class="field">
+        <label class="label">Created</label>
+        <div class="control">
+          {{template "format-time" .CreatedAt}}
+        </div>
+      </div>
+
+      {{if $.Session.User.IsRoleAdmin}}
+      <div class="field">
+        <label class="label">Archived</label>
+        <div class="control">
+          {{template "format-time" .ArchivedAt}}
+        </div>
+      </div>
+      {{end}}
+      {{end}}
+
+      {{if $.Session.User.IsRoleAdmin}}
+      <div class="field">
+        <div class="control">
+          <button type="submit" class="button is-link">Save</button>
+        </div>
+      </div>
+      {{end}}
+    </form>
+    {{end}}
+  </div>
+
+  <div class="column">
+    {{ if .Dataset.Manageable }}
+    {{if .Dataset.DatasetID}}
+    <hr class="is-hidden-desktop">
+
+    <div class="table-container">
+      <table class="table is-striped is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+          <th>Tag Type</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .TagTypes}}
+        <tr>
+          <td>
+            {{if and $.Session.User.IsRoleLabeler (not $.Session.User.IsRoleAdmin)}}
+            {{.TagType}}
+            {{else}}
+            <a href="{{ReverseURL `tag-type-edit` `DatasetID` .DatasetID `TagTypeID` .TagTypeID}}">{{.TagType}}</a>
+            {{end}}
+          </td>
+          <td style="white-space: pre;">{{.Description}}</td>
+          <td>
+            <a class="button is-small is-pulled-right"
+               href="{{ReverseURL `tag-list` `DatasetID` .DatasetID `TagTypeID` .TagTypeID}}">Tags</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" class="has-text-centered">No Tag Types</td>
+        </tr>
+        {{end}}
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+
+    {{if $.Session.User.IsRoleAdmin}}
+    <hr>
+
+    <div class="table-container">
+      <table class="table is-striped is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+          <th>Corporation Type</th>
+          <th>Description</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .CorporationTypes}}
+        <tr>
+          <td>
+            <a href="{{ReverseURL `corporation-type-edit` `DatasetID` .DatasetID `CorporationTypeID` .CorporationTypeID}}">{{.CorporationType}}</a>
+          </td>
+          <td style="white-space: pre;">{{.Description}}</td>
+          <td>
+            <a class="button is-small is-pulled-right"
+               href="{{ReverseURL `corp-mapping-list` `DatasetID` .DatasetID `CorpTypeID` .CorporationTypeID}}">CorpMappings</a>
+          </td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" class="has-text-centered">No Corporation Types</td>
+        </tr>
+        {{end}}
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+
+    <hr>
+
+    <div class="table-container">
+      <table class="table is-striped is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+          <th>Corporation</th>
+          <th>Slug</th>
+          <th>Ticker</th>
+          <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        {{range .Corporations}}
+        <tr>
+          <td>
+            <a href="{{ReverseURL `corporation-edit` `DatasetID` .DatasetID `CorporationID` .CorporationID}}">{{.Name}}</a>
+          </td>
+          <td style="white-space: pre;">{{.Slug}}</td>
+          <td style="white-space: pre;">{{ if and .Code .Exchange }}{{.Exchange}}:{{.Code}}{{end}}</td>
+        </tr>
+        {{else}}
+        <tr>
+          <td colspan="6" class="has-text-centered">No Corporations</td>
+        </tr>
+        {{end}}
+        </tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+    {{end}}
+
+    {{end}}
+    {{end}}
+  </div>
+</div>
+{{end}}

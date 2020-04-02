@@ -1,0 +1,37 @@
+{{define "table_test.upsert"}}
+func Test{{.RowType}}_Upsert(t *testing.T) {
+	t.Parallel()
+	db, done := NewDBForTesting()
+	defer done()
+
+	// Insert a row.
+	row := New{{.RowType}}ForTesting(db)
+	if err := {{.RowType}}s.Upsert(db, &row); err != nil {
+		t.Fatal(err)
+	}
+
+	// Update the row.
+	newRow :=New{{.RowType}}ForTesting(db)
+	{{range .UpdateCols -}}
+	row.{{.GoName}} = newRow.{{.GoName}}
+	{{end}}
+
+	if err := {{.RowType}}s.Upsert(db, &row); err != nil {
+		t.Fatal(err)
+	}
+
+	// Make sure row from database matches inserted row.
+	row2, err := {{.RowType}}s.Get(
+		db,
+		{{range .KeyCols -}}
+		row.{{.GoName}},
+		{{end}})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !row.Equals(row2) {
+		t.Fatalf("%v != %v", row, row2)
+	}
+}
+{{end}}

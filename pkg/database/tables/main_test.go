@@ -1,0 +1,84 @@
+package tables
+
+// ----------------------------------------------------------------------------
+// THIS FILE IS GENERATED
+// ----------------------------------------------------------------------------
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+	"os"
+	"testing"
+
+	"github.com/BurntSushi/toml"
+	"github.com/Suburbia-io/dashboard/pkg/database/migrations"
+)
+
+var testDB *sql.DB
+
+func NewDBForTesting() (*sql.Tx, func()) {
+	tx, err := testDB.Begin()
+	if err != nil {
+		panic(err)
+	}
+	return tx, func() {
+		tx.Rollback()
+	}
+}
+
+type Config struct {
+	DBHost     string
+	DBPort     string
+	DBUser     string
+	DBPassword string
+	DBSSLMode  string
+}
+
+func TestMain(m *testing.M) {
+	confPath := os.Getenv("SUBURBIA_DASHBOARD_CONFIG")
+	if confPath == "" {
+		log.Fatalf("Environment variable not set: SUBURBIA_DASHBOARD_CONFIG")
+	}
+	config := struct {
+		DB Config
+	}{}
+
+	_, err := toml.DecodeFile(confPath, &config)
+	if err != nil {
+		log.Fatalf("Failed to read config: %v", err)
+	}
+
+	conf := config.DB
+	testDB, err = sql.Open("postgres",
+		fmt.Sprintf(`host=%s port=%s user=%s password=%s sslmode=%s`,
+			conf.DBHost,
+			conf.DBPort,
+			conf.DBUser,
+			conf.DBPassword,
+			conf.DBSSLMode))
+	if err != nil {
+		panic(err)
+	}
+	_, _ = testDB.Exec(`CREATE DATABASE dashboard_tables_test`)
+
+	testDB, err = sql.Open("postgres",
+		fmt.Sprintf(`host=%s port=%s user=%s password=%s sslmode=%s dbname=dashboard_tables_test`,
+			conf.DBHost,
+			conf.DBPort,
+			conf.DBUser,
+			conf.DBPassword,
+			conf.DBSSLMode))
+	if err != nil {
+		panic(err)
+	}
+
+	if err := migrations.Drop(testDB); err != nil {
+		panic(err)
+	}
+	if err := migrations.Migrate(testDB); err != nil {
+		panic(err)
+	}
+
+	os.Exit(m.Run())
+}

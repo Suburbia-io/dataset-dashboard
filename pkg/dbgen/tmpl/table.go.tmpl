@@ -1,0 +1,566 @@
+{{/*
+   *
+   * Table go code. Context is a *rawTable.
+   *
+   */}}
+{{define "table.go" -}}
+package {{.Package}}
+
+// ----------------------------------------------------------------------------
+// THIS FILE IS GENERATED.
+// ----------------------------------------------------------------------------
+
+import (
+	"github.com/Suburbia-io/dashboard/pkg/errors"
+	{{if .HasValidator}}"github.com/Suburbia-io/dashboard/pkg/helpers/validate"{{end}}
+	{{if .HasSanitizer}}"github.com/Suburbia-io/dashboard/pkg/helpers/sanitize"{{end}}
+	{{if .HasAutoUUID}}"github.com/Suburbia-io/dashboard/pkg/helpers/crypto"{{end}}
+	"github.com/lib/pq"
+)
+
+type {{.RowType}} struct {
+	{{range .Cols -}}
+	{{.GoName}} {{.GoType}} `json:"{{.JSONName}}"`
+	{{end}}
+}
+
+type {{.RowType}}Table struct {}
+
+var {{.RowType}}s = {{.RowType}}Table{}
+
+// ----------------------------------------------------------------------------
+// Equality
+// ----------------------------------------------------------------------------
+
+// Check equality based on insertable columns. Columns that are view-only are
+// ignored.
+func (row {{.RowType}}) Equals(rhs {{.RowType}}) bool {
+	{{range .InsertCols -}}
+
+	{{if (eq .GoType "time.Time") -}}
+
+	if !row.{{.GoName}}.Equal(rhs.{{.GoName}}) {
+		return false
+	}
+
+	{{else if (eq .GoType "*time.Time") -}}
+
+	if row.{{.GoName}} != nil || rhs.{{.GoName}} != nil {
+		if row.{{.GoName}} == nil || rhs.{{.GoName}} == nil {
+			return false
+		}
+		if !row.{{.GoName}}.Equal(*rhs.{{.GoName}}) {
+			return false
+		}
+	}
+
+	{{else if (eq .GoType "json.RawMessage") -}}
+
+	if !bytes.Equal(row.{{.GoName}}, rhs.{{.GoName}}) {
+		return false
+	}
+
+	{{else if (eq .GoType "*json.RawMessage") -}}
+
+	if row.{{.GoName}} != nil || rhs.{{.GoName}} != nil {
+		if row.{{.GoName}} == nil || rhs.{{.GoName}} == nil {
+			return false
+		}
+		if !bytes.Equal(*row.{{.GoName}}, *rhs.{{.GoName}}) {
+			return false
+		}
+	}
+
+	{{else if .IsPointer}}
+
+	if row.{{.GoName}} != nil || rhs.{{.GoName}} != nil {
+		if row.{{.GoName}} == nil || rhs.{{.GoName}} == nil {
+			return false
+		}
+		if *row.{{.GoName}} != *rhs.{{.GoName}} {
+			return false
+		}
+	}
+
+	{{else -}}
+	if row.{{.GoName}} != rhs.{{.GoName}} {
+		return false
+	}
+	{{end}}
+
+	{{- end}}
+	return true
+}
+
+// ----------------------------------------------------------------------------
+// Scan
+// ----------------------------------------------------------------------------
+
+// Scan a database row into a `{{.RowType}}` object. The selected columns
+// should be those returned by the `SelectCols` function.
+func (t {{.RowType}}Table) Scan(
+	src interface{ Scan(args ...interface{}) error },
+) (
+	row {{.RowType}},
+	err error,
+) {
+	err = src.Scan(
+		{{- range .Cols}}
+		&row.{{.GoName}},
+		{{- end}})
+
+	if err == nil {
+		return
+	}
+
+	if err == sql.ErrNoRows {
+		return row, errors.DBNotFound
+	}
+
+	return row, errors.Unexpected.
+		Wrap("Failed to scan {{.RowType}}: %w", err).
+		Alert()
+}
+
+// ----------------------------------------------------------------------------
+// Query helpers.
+// ----------------------------------------------------------------------------
+
+// Table returns the table name.
+func (t {{.RowType}}Table) Table() string {
+	return `{{.Table}}`
+}
+
+// View returns the table's view (for reading). May be the same as Table().
+func (t {{.RowType}}Table) View() string {
+	return `{{.View}}`
+}
+
+// SelectCols returns a list of columns to select. This should be used when
+// building a query in order to use this class's `List` or `Scan` functions.
+func (t {{.RowType}}Table) SelectCols() string {
+	return `{{range $i,$col := .Cols}}{{if $i}},{{end}}{{$col.DBName}}{{end}}`
+}
+
+// ----------------------------------------------------------------------------
+// Insert
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const insertQuery_{{.RowType}} = `INSERT INTO {{.Table}}(
+ {{- range $i,$col := .InsertCols}}
+ {{- if $i}},{{end}}
+{{$col.DBName}}
+ {{- end}}
+) VALUES (
+ {{range $i,$col := .InsertCols}}{{if $i}},{{end}}${{$.Counter}}{{end}}
+)`
+
+// Insert will validate and insert a new `{{.RowType}}`.
+// It may return the following errors:
+//   - DBDuplicate
+//   - DBFKey
+//   - DBNullConstraint
+// Additionally it may return validation errors.
+func (t {{.RowType}}Table) Insert(
+	db DBi,
+	row *{{.RowType}},
+) (
+	err error,
+) {
+	{{template "autoUUIDs" .Cols}}
+	{{template "validateAndSanitizeRow" .Cols}}
+
+	// Execute query.
+	_, err = db.Exec(insertQuery_{{.RowType}},
+		{{- range .InsertCols}}
+		row.{{.GoName}},
+		{{- end}})
+
+	if err == nil {
+		return nil
+	}
+
+	if err := translateDBError(err); err != nil {
+		return err
+	}
+
+	return errors.Unexpected.
+			Wrap("{{.RowType}}.Insert failed: %w", err).
+			Alert()
+}
+
+{{if .Updatable}}
+// ----------------------------------------------------------------------------
+// Upsert
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const upsertQuery_{{.RowType}} = `INSERT INTO {{.Table}}(
+ {{- range $i,$col := .InsertCols}}
+ {{- if $i}},{{end}}
+ {{$col.DBName}}{{end}}
+) VALUES (
+ {{range $i,$col := .InsertCols}}{{if $i}},{{end}}${{$.Counter}}{{end}}
+)
+ON CONFLICT ({{- range $i,$col := $.KeyCols}}{{- if $i}},{{end}}{{$col.DBName}}{{end}})
+DO UPDATE SET
+{{- range $i,$col := .UpdateCols}}
+ {{- if $i}},{{end}}
+ {{$col.DBName}}=EXCLUDED.{{$col.DBName}}
+{{- end}}`
+
+func (t {{.RowType}}Table) Upsert(
+	db DBi,
+	row *{{.RowType}},
+) (
+	err error,
+) {
+	{{template "autoUUIDs" .Cols}}
+	{{template "validateAndSanitizeRow" .Cols}}
+
+	// Execute query.
+	result, err := db.Exec(upsertQuery_{{.RowType}},
+		{{- range .InsertCols}}
+		row.{{.GoName}},
+		{{- end}})
+	{{template "returnUpdateError" .}}
+}
+
+// ----------------------------------------------------------------------------
+// Update
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const updateQuery_{{.RowType}} = `UPDATE
+ {{.Table}}
+SET
+{{- range $i,$col := .UpdateCols}}
+ {{- if $i}},{{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}
+WHERE
+{{- range $i,$col := .KeyCols}}
+ {{- if $i}} AND {{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}`
+
+// Update updates the following column values:
+{{- range .UpdateCols}}
+//   - {{.GoName}}
+{{- end}}
+// It may return the following errors:
+//   - DBNotFound
+//   - DBDuplicate
+//   - DBFKey
+//   - DBNullConstraint
+// Additionally it may return validation errors.
+func (t {{.RowType}}Table) Update(
+	db DBi,
+	row *{{.RowType}},
+) (
+	err error,
+) {
+	{{template "validateAndSanitizeRow" .Cols}}
+
+	// Execute query.
+	result, err := db.Exec(updateQuery_{{.RowType}},
+		{{- range .UpdateCols}}
+		row.{{.GoName}},
+		{{- end}}
+		{{- range .KeyCols}}
+		row.{{.GoName}},
+		{{- end}})
+	{{template "returnUpdateError" .}}
+}
+
+{{end}} {{/* Updatable */}}
+
+{{range .DirectUpdateCols}}
+
+// ----------------------------------------------------------------------------
+// Update{{.GoName}}
+// ----------------------------------------------------------------------------
+
+{{$.ResetCounter}}
+const updateQuery_{{$.RowType}}_{{.GoName}} = `UPDATE
+ {{$.Table}}
+SET
+ {{.DBName}}=${{$.Counter}}
+WHERE
+{{- range $i,$col := $.KeyCols}}
+ {{- if $i}} AND {{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}`
+
+// Update{{.GoName}} will attempt to update the {{.GoName}} column in the row
+// corresponding to the given primary key.
+//
+// It may return the following errors:
+//   - DBNotFound
+//   - DBDuplicate
+//   - DBFKey
+//   - DBNullConstraint
+// Additionally it may return validation errors.
+func (t {{$.RowType}}Table) Update{{.GoName}}(
+	db DBi,
+	{{- range $.KeyCols}}
+	{{.GoName}} {{.GoType}},
+	{{- end}}
+	{{.GoName}} {{.GoType}},
+) (
+	err error,
+) {
+	{{if .Sanitizer -}}
+	{{.GoName}} = sanitize.{{.Sanitizer}}({{.GoName}})
+
+	{{end}}
+	{{if .Validator -}}
+	if err = validate.{{.Validator}}({{.GoName}}); err != nil {
+		e := err.(errors.Error)
+		return e.Wrap("Validation failed on {{.GoName}}.")
+	}
+
+	{{end -}}
+
+	result, err := db.Exec(updateQuery_{{$.RowType}}_{{.GoName}},
+		{{.GoName}},
+		{{- range $.KeyCols}}
+		{{.GoName}},
+		{{- end}})
+	{{template "returnUpdateError" $}}
+}
+{{end}}
+
+// ----------------------------------------------------------------------------
+// Delete
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const deleteQuery_{{.RowType}} = `DELETE FROM
+ {{.Table}}
+WHERE
+{{- range $i,$col := $.KeyCols}}
+ {{- if $i}} AND {{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}`
+
+// Delete attempts to delete a row specified by its primary key. It does not
+// cascade, and may return errors.DBFKey if the delete fails.
+func (t {{.RowType}}Table) Delete(
+	db DBi,
+	{{- range .KeyCols}}
+	{{.GoName}} {{.GoType}},
+	{{- end}}
+) (
+	err  error,
+) {
+	_, err = db.Exec(deleteQuery_{{.RowType}},
+		{{- range $.KeyCols}}
+		{{.GoName}},
+		{{- end}})
+
+	if err == nil {
+		return nil
+	}
+	if err := translateDBError(err); err != nil {
+		return err
+	}
+
+	// Not a known error.
+	return errors.Unexpected.
+		Wrap("{{.RowType}}.Delete failed: %w", err).
+		Alert()
+}
+
+// ----------------------------------------------------------------------------
+// Get
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const getQuery_{{.RowType}} = `SELECT
+ {{- range $i,$col := .Cols}}
+ {{- if $i}},{{end}}
+ {{$col.DBName}}{{end}}
+FROM
+ {{.View}}
+WHERE
+{{- range $i,$col := $.KeyCols}}
+ {{- if $i}} AND {{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}`
+
+// Get returns the `{{.RowType}}` object specified by its primary key. May
+// return a DBNotFound error if the row isn't found.
+func (t {{.RowType}}Table) Get(
+	db DBi,
+	{{range $col := .KeyCols -}}
+	{{$col.GoName}} {{$col.GoType}},
+	{{end -}}
+) (
+	row {{.RowType}},
+	err  error,
+) {
+	src := db.QueryRow(getQuery_{{.RowType}},
+		{{- range $.KeyCols}}
+		{{.GoName}},
+		{{- end}})
+
+	return t.Scan(src)
+}
+
+{{range .GetBys}}
+// ----------------------------------------------------------------------------
+// GetBy{{.Name}}
+// ----------------------------------------------------------------------------
+{{$.ResetCounter}}
+const getQuery_{{$.RowType}}_by{{.Name}} = `SELECT
+ {{- range $i,$col := $.Cols}}
+ {{- if $i}},{{end}}
+ {{$col.DBName}}{{end}}
+FROM
+  {{$.View}}
+WHERE
+{{- range $i,$col := .Cols}}
+ {{- if $i}} AND {{end}}
+ {{$col.DBName}}=${{$.Counter}}
+{{- end}}`
+
+// GetBy{{.Name}} return the {{$.RowType}} object by a natural key.
+func (t {{$.RowType}}Table) GetBy{{.Name}}(
+	db DBi,
+	{{range .Cols -}}
+	{{.GoName}} {{.GoType}},
+	{{end -}}
+) (
+	row {{$.RowType}},
+	err error,
+) {
+	{{range .Cols -}}
+	{{if .IsPointer}}
+	if {{.GoName}} == nil {
+		return row, errors.DBNotFound
+	}
+	{{end}}
+	{{end}}
+
+	src := db.QueryRow(getQuery_{{$.RowType}}_by{{.Name}},
+		{{- range .Cols}}
+		{{.GoName}},
+		{{- end}})
+
+	return t.Scan(src)
+}
+{{end}}
+
+// ----------------------------------------------------------------------------
+// List
+// ----------------------------------------------------------------------------
+
+// List will execute the given query (with arguments) and scan the results into
+// a list of `{{.RowType}}` objects.
+//
+// The query should select from the `View` columns returned by the `SelectCols`
+// function.
+func (t {{.RowType}}Table) List(
+	db DBi,
+	query string,
+	args ...interface{},
+) (
+	l []{{.RowType}},
+	err error,
+) {
+	rows, err := db.Query(query, args...)
+	if err != nil {
+		return l, errors.Unexpected.
+			Wrap("{{.RowType}}.List failed: %w", err).
+			Alert()
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		row, err := t.Scan(rows)
+		if err != nil {
+			return l, err
+		}
+		l = append(l, row)
+	}
+
+	if err := rows.Err(); err != nil {
+		return l, errors.Unexpected.
+			Wrap("{{.RowType}}.List iteration failed: %w", err).
+			Alert()
+	}
+
+	return l, nil
+}
+
+// ----------------------------------------------------------------------------
+// Dump To Sqlite
+// ----------------------------------------------------------------------------
+
+{{.ResetCounter}}
+const createTableQuery_{{.RowType}} = `CREATE TABLE {{.Table}}(
+ {{- range $i,$col := .InsertCols}}
+ {{- if $i}},{{end}}
+{{$col.DBName}}
+ {{- end}}
+)`
+
+func (t {{.RowType}}Table) DumpToSqlite(
+db DBi,
+sqlite DBi,
+selectQuery string,
+args ...interface{},
+) (
+err error,
+) {
+ _, err = sqlite.Exec(createTableQuery_{{.RowType}})
+  if err != nil {
+    return errors.Unexpected.
+    Wrap("{{.RowType}}.Create in sqlite failed: %w", err).
+    Alert()
+  }
+
+ stmt, err := sqlite.Prepare(insertQuery_{{.RowType}})
+ if err != nil {
+   return errors.Unexpected.
+   Wrap("{{.RowType}}.Insert to sqlite failed: %w", err).
+   Alert()
+ }
+
+ rows, err := db.Query(selectQuery, args...)
+ if err != nil {
+   return errors.Unexpected.
+   Wrap("{{.RowType}}.List failed: %w", err).
+   Alert()
+ }
+ defer rows.Close()
+
+ for rows.Next() {
+   row, err := t.Scan(rows)
+   if err != nil {
+     return err
+   }
+   _, err = stmt.Exec({{- range .InsertCols}}
+      row.{{.GoName}},
+      {{- end}}
+   )
+
+  if err != nil {
+    return errors.Unexpected.
+    Wrap("{{.RowType}}.Insert failed: %w", err).
+    Alert()
+  }
+ }
+
+ if err := rows.Err(); err != nil {
+   return errors.Unexpected.
+   Wrap("{{.RowType}}.List iteration failed: %w", err).
+   Alert()
+ }
+
+ return nil
+
+}
+{{end}} {{/* define */}}
