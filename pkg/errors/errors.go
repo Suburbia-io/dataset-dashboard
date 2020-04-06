@@ -24,28 +24,67 @@ var (
 	DBNotFound       = NewErr("DBNotFound")
 	DBUnknownColumn  = NewErr("DBUnknownColumn")
 
+	JobQueueFull = NewErr("JobQueueFull")
+
 	HttpBadRequestArgs = NewErr("HttpBadRequestArgs")
+	HttpBadMethod      = NewErr("HttpBadMethod")
+	HttpBadContentType = NewErr("HttpBadContentType")
 	HttpNotAuthorized  = NewErr("HttpNotAuthorized")
 	HttpForbidden      = NewErr("HttpForbidden")
+	NotAuthorized      = NewErr("NotAuthorized")
 
 	InvalidSessionToken = NewErr("InvalidSessionToken")
+	SessionNotFound     = NewErr("SessionNotFound")
 	AuthTokenNotFound   = NewErr("AuthTokenNotFound")
+
+	UserNotAllowedPassword = NewErr("UserNotAllowedPassword")
 
 	EventInvalidName = NewErr("EventInvalidName")
 
+	IXRuleNotFound        = NewErr("IXRuleNotFound")
+	IXRuleInvalidGroup    = NewErr("IXRuleInvalidGroup")
+	IXRuleInvalidLabel    = NewErr("IXRuleInvalidLabel")
+	IXRuleDuplicate       = NewErr("IXRuleDuplicate")
+	IXRuleInvalidIncludes = NewErr("IXRuleInvalidIncludes")
+	IXRuleInvalidExcludes = NewErr("IXRuleInvalidExcludes")
+
+	BrandNotFound           = NewErr("BrandNotFound")
 	BrandInvalidLabel       = NewErr("BrandInvalidLabel")
 	BrandInvalidDescription = NewErr("BrandInvalidDescription")
+	BrandDuplicateSlug      = NewErr("BrandDuplicateSlug")
 
+	CorporationNotFound        = NewErr("CorporationNotFound")
 	CorporationInvalidSymbol   = NewErr("CorporationInvalidSymbol")
 	CorporationInvalidName     = NewErr("CorporationInvalidName")
+	CorporationDuplicateSymbol = NewErr("CorporationDuplicateSymbol")
+	CorporationDuplicateISIN   = NewErr("CorporationDuplicateISIN")
 	CorporationInvalidISIN     = NewErr("CorporationInvalidISIN")
+	CorporationDuplicateCUSIP  = NewErr("CorporationDuplicateCUSIP")
 	CorporationInvalidCUSIP    = NewErr("CorporationInvalidCUSIP")
+	CorporationDuplicate       = NewErr("CorporationDuplicate")
+
+	MappingNotFound        = NewErr("MappingNotFound")
+	MappingIllegalChild    = NewErr("MappingIllegalChild")
+	MappingIllegalParent   = NewErr("MappingIllegalParent")
+	MappingInvalidLocation = NewErr("MappingInvalidLocation")
+	MappingChildNotFound   = NewErr("MappingChildNotFound")
+	MappingParentNotFound  = NewErr("MappingParentNotFound")
+	MappingInvalidStart    = NewErr("MappingInvalidStart")
+
+	DatasetInvalidName = NewErr("DatasetInvalidName")
+	DatasetNotFound    = NewErr("DatasetNotFound")
+	DatasetDuplicate   = NewErr("DatasetDuplicate")
 
 	CustomerInvalidName = NewErr("CustomerInvalidName")
 	CustomerNotFound    = NewErr("CustomerNotFound")
 
+	LocationNotFound      = NewErr("LocationNotFound")
+	LocationAlreadyExists = NewErr("LocationAlreadyExists")
+
 	IllegalOffset      = NewErr("IllegalOffset")
 	IllegalLimit       = NewErr("IllegalLimit")
+	IllegalSort        = NewErr("IllegalSort")
+	InvalidQueryParams = NewErr("InvalidQueryParams")
 
 	EmptyString       = NewErr("EmptyString")
 	InvalidUUID       = NewErr("InvalidUUID")

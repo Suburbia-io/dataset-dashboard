@@ -58,7 +58,7 @@ func GetSessionFromBearer(r *http.Request, db *database.DBAL) (s SharedSession) 
 	}
 
 	// API access is only for internal use.
-	if user.CustomerID != InternalCustomerUUID {
+	if user.CustomerID != SuburbiaInternalCustomerUUID {
 		return
 	}
 

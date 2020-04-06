@@ -118,7 +118,7 @@ func (app *App) CustomerUserLoginSubmit(w http.ResponseWriter, r *http.Request, 
 		return nil
 	}
 
-	if !user.IsRoleCustomerUser || user.CustomerID == shared.InternalCustomerUUID {
+	if !user.IsRoleCustomerUser || user.CustomerID == shared.SuburbiaInternalCustomerUUID {
 		secureFail(user.UserID, "customerUserLoginNotAllowedFail", args.Auth.Email)
 		return nil
 	}

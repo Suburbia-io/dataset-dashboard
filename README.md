@@ -45,7 +45,7 @@ https://nodejs.org/dist/latest-v10.x/
 
 * Load the dashboard application in your browser:
 
-http://localhost:6655
+http://suburbia.test:6655
 
 ## Adding / update internal dependencies
 

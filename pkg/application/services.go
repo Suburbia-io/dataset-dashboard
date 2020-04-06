@@ -40,9 +40,9 @@ func DevSetupService(app *App) (err error) {
 	}
 
 	// Create the Suburbia Internal customer.
-	customer, err := app.DBAL.CustomerGet(shared.InternalCustomerUUID)
+	customer, err := app.DBAL.CustomerGet(shared.SuburbiaInternalCustomerUUID)
 	if errors.DBNotFound.Is(err) {
-		customer.CustomerID = shared.InternalCustomerUUID
+		customer.CustomerID = shared.SuburbiaInternalCustomerUUID
 		defer app.DBAL.AuditTrailBySystemInsertAsync(tables.Customers.Table(), customer.CustomerID, "suburbiaInternalCreate", customer)
 	}
 	customer.Name = "Suburbia Internal"
@@ -56,7 +56,7 @@ func DevSetupService(app *App) (err error) {
 	if errors.DBNotFound.Is(err) {
 		user.Name = "Default Admin"
 		user.Email = app.Config.SuperAdminEmail
-		user.CustomerID = shared.InternalCustomerUUID
+		user.CustomerID = shared.SuburbiaInternalCustomerUUID
 		user.ArchivedAt = nil
 		err = app.DBAL.UserUpsert(&user)
 		if err != nil {

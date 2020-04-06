@@ -40,16 +40,16 @@ func (app *App) AdminUserList(w http.ResponseWriter, r *http.Request, s shared.S
 
 func (app *App) AdminUserForm(w http.ResponseWriter, r *http.Request, s shared.SharedSession) (err error) {
 	ctx := struct {
-		Session              shared.SharedSession
-		InternalCustomerUUID string
-		User                 struct {
+		Session                      shared.SharedSession
+		SuburbiaInternalCustomerUUID string
+		User                         struct {
 			database.User
 			Archived bool
 		}
 		Customers []database.Customer
 	}{
-		Session:              s,
-		InternalCustomerUUID: shared.InternalCustomerUUID,
+		Session:                      s,
+		SuburbiaInternalCustomerUUID: shared.SuburbiaInternalCustomerUUID,
 	}
 	err = decoder.Decode(&ctx.User, r.Form)
 	if err != nil {
@@ -166,8 +166,8 @@ func (app *App) UserPasswordFormSubmit(w http.ResponseWriter, r *http.Request, s
 		return err
 	}
 
-	if args.Pwd.CustomerID != shared.InternalCustomerUUID {
-		return errors.New("only users that belong to the Internal customer can have passwords")
+	if args.Pwd.CustomerID != shared.SuburbiaInternalCustomerUUID {
+		return errors.New("only users that belong to the Suburbia Internal can have passwords")
 	}
 
 	err = app.DBAL.UserSetStrongPasswordForAdmin(args.Pwd.UserID, args.Pwd.Password)
@@ -204,12 +204,12 @@ func (app *App) UserRolesFormSubmit(w http.ResponseWriter, r *http.Request, s sh
 		return errors.New("IsRoleSuperAdmin cannot be set when IsRoleAdmin is not set")
 	}
 
-	if args.Roles.IsRoleAdmin && args.Roles.CustomerID != shared.InternalCustomerUUID {
-		return errors.New("only users that belong to the Internal customer can be admins")
+	if args.Roles.IsRoleAdmin && args.Roles.CustomerID != shared.SuburbiaInternalCustomerUUID {
+		return errors.New("only users that belong to the Suburbia Internal can be admins")
 	}
 
-	if args.Roles.IsRoleLabeler && args.Roles.CustomerID != shared.InternalCustomerUUID {
-		return errors.New("only users that belong to the Internal customer can be labelers")
+	if args.Roles.IsRoleLabeler && args.Roles.CustomerID != shared.SuburbiaInternalCustomerUUID {
+		return errors.New("only users that belong to the Suburbia Internal can be labelers")
 	}
 
 	// This is not the most efficient way to do this but having the roles outside of the normal user update allows us to

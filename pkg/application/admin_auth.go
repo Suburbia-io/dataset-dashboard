@@ -72,7 +72,7 @@ func (app *App) AdminAuthSubmit(w http.ResponseWriter, r *http.Request, s shared
 		return
 	}
 
-	if user.CustomerID != shared.InternalCustomerUUID {
+	if user.CustomerID != shared.SuburbiaInternalCustomerUUID {
 		defer app.DBAL.AuditTrailBySystemInsertAsync(
 			tables.Users.Table(), user.UserID, "adminLoginNonAdminFail", args.Auth.Email)
 		http.Redirect(w, r, ".?error=1", http.StatusSeeOther)
@@ -148,7 +148,7 @@ func (app *App) AdminTwoFactorSubmit(w http.ResponseWriter, r *http.Request, s s
 		return
 	}
 
-	userID, err := app.DBAL.AuthAuthenticateAdminToken(args.Auth.EmailToken, args.Auth.BrowserToken, shared.InternalCustomerUUID)
+	userID, err := app.DBAL.AuthAuthenticateAdminToken(args.Auth.EmailToken, args.Auth.BrowserToken, shared.SuburbiaInternalCustomerUUID)
 	if err != nil {
 		defer app.DBAL.AuditTrailBySystemInsertAsync(tables.Users.Table(), "", "adminTwoFactorFail", args.Auth.EmailToken)
 		http.Redirect(w, r, "/admin/auth/?error=1", http.StatusSeeOther)
@@ -161,7 +161,7 @@ func (app *App) AdminTwoFactorSubmit(w http.ResponseWriter, r *http.Request, s s
 		return
 	}
 
-	if session.User.CustomerID != shared.InternalCustomerUUID {
+	if session.User.CustomerID != shared.SuburbiaInternalCustomerUUID {
 		defer app.DBAL.AuditTrailBySystemInsertAsync(
 			tables.Users.Table(), session.User.UserID, "adminTwoFactorNonAdminFail", session.User.Email)
 		http.Redirect(w, r, "/admin/auth/?error=1", http.StatusSeeOther)
